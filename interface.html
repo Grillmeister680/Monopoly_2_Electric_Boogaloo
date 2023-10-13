@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monopoly Interface</title>
+    <style>
+        .grid-container4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 10px;
+        }
+        .grid-container3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 10px;
+        }
+        .container {
+            display: flex;
+            justify-content: 10px; /* Creates space between elements */
+        }
+
+        .grid-item {
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .green-text {
+            color: green;
+        }
+
+        .red-text {
+            color: red;
+        }
+        .button {
+            background-color: red; 
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    Stock Prices
+    <div class="grid-container4">
+        <!-- First Row: Display calculated numbers -->
+        <div class="grid-item" id="price1"></div>
+        <div class="grid-item" id="price2"></div>
+        <div class="grid-item" id="price3"></div>
+        <div class="grid-item" id="price4"></div>
+
+        <!-- Second Row: User input -->
+        <div class="grid-item">
+            <label for="userInput1">Cash Balance 1:</label>
+            <input type="number" id="userInput1">
+        </div>
+        <div class="grid-item">
+            <label for="userInput2">Cash Balance 2:</label>
+            <input type="number" id="userInput2">
+        </div>
+        <div class="grid-item">
+            <label for="userInput3">Cash Balance 3:</label>
+            <input type="number" id="userInput3">
+        </div>
+        <div class="grid-item">
+            <label for="userInput4">Cash Balance 4:</label>
+            <input type="number" id="userInput4">
+        </div>
+
+        <!-- Third Row: User input -->
+        <div class="grid-item">
+            <label for="userInput5">Asset Balance 1:</label>
+            <input type="number" id="userInput5">
+        </div>
+        <div class="grid-item">
+            <label for="userInput6">Asset Balance 2:</label>
+            <input type="number" id="userInput6">
+        </div>
+        <div class="grid-item">
+            <label for="userInput7">Asset Balance 3:</label>
+            <input type="number" id="userInput7">
+        </div>
+        <div class="grid-item">
+            <label for="userInput8">Asset Balance 4:</label>
+            <input type="number" id="userInput8">
+        </div>
+    </div>
+    <br>  
+    Stock Returns
+    <div class="grid-container4">
+        <!-- Fourth Row: Effective change -->
+        <div class="grid-item" id="r1"></div>
+        <div class="grid-item" id="r2"></div>
+        <div class="grid-item" id="r3"></div>
+        <div class="grid-item" id="r4"></div>
+
+    </div>
+
+    <br>
+    Economic Indicators
+    <div class="grid-container3">
+        <!-- Fifth Row: Economic indicators -->
+        <div class="grid-item" id="stock_factor"></div>
+        <div class="grid-item" id="bond_factor"></div>
+        <div class="grid-item" id="ffr"></div>
+    </div>  
+    <br>
+    <button class="button" id="next-button">Next Round</button>
+
+    <script>
+        let currentRow = 0;
+        let csvData = [];
+
+        let previous_price_1 = 5;
+        let previous_price_2 = 5;
+        let previous_price_3 = 5;
+        let previous_price_4 = 5;
+
+        fetch('stock_price.csv')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(data => {
+                csvData = data.split('\n').map(row => row.split(','));
+                csvData.shift(); // Remove the header row
+
+                function displayRow(row) {
+                    const stock_factor = document.getElementById('stock_factor');
+                    const bond_factor = document.getElementById('bond_factor');
+                    const ffr = document.getElementById('ffr');
+                    stock_factor.textContent = csvData[row][0];
+                    bond_factor.textContent = csvData[row][1];
+                    ffr.textContent = csvData[row][2];
+                }
+
+                displayRow(currentRow);
+
+                function price_calculation(row) {
+                    const stock_factor = parseFloat(document.getElementById('stock_factor').textContent);
+                    const cash_balance_1 = parseFloat(document.getElementById("userInput1").value);
+                    const asset_balance_1 = parseFloat(document.getElementById("userInput5").value);
+                    const price_1 = stock_factor * (cash_balance_1 + asset_balance_1) / 100;
+
+                    const cash_balance_2 = parseFloat(document.getElementById("userInput2").value);
+                    const asset_balance_2 = parseFloat(document.getElementById("userInput6").value);
+                    const price_2 = stock_factor * (cash_balance_2 + asset_balance_2) / 100;
+
+                    const cash_balance_3 = parseFloat(document.getElementById("userInput3").value);
+                    const asset_balance_3 = parseFloat(document.getElementById("userInput7").value);
+                    const price_3 = stock_factor * (cash_balance_3 + asset_balance_3) / 100;
+
+                    const cash_balance_4 = parseFloat(document.getElementById("userInput4").value);
+                    const asset_balance_4 = parseFloat(document.getElementById("userInput8").value);
+                    const price_4 = stock_factor * (cash_balance_4 + asset_balance_4) / 100;
+
+                    return [price_1, price_2, price_3, price_4]
+                }
+
+                price_calculation(currentRow);
+
+                const nextButton = document.getElementById('next-button');
+                nextButton.addEventListener('click', () => {
+                    currentRow++;
+                    if (currentRow >= csvData.length) {
+                        currentRow = 0;
+                    }
+                    displayRow(currentRow);
+                    const [price_1, price_2, price_3, price_4] = price_calculation(currentRow);
+
+                    price1.textContent = price_1.toFixed(4);
+                    price2.textContent = price_2.toFixed(4);
+                    price3.textContent = price_3.toFixed(4);
+                    price4.textContent = price_4.toFixed(4);
+                    
+                    const r_1 = (price_1 - previous_price_1) * 100 / previous_price_1;
+                    const r_2 = (price_2 - previous_price_2) * 100 / previous_price_2;
+                    const r_3 = (price_3 - previous_price_3) * 100 / previous_price_3;
+                    const r_4 = (price_4 - previous_price_4) * 100 / previous_price_4;
+
+                    function handleColorAndValue(r, elementId) {
+                        const element = document.getElementById(elementId);
+                        element.textContent = r.toFixed(2);
+                        
+                        // Check the value of 'r' to determine the color class
+                        if (parseFloat(r) > 0) {
+                            element.classList.add("green-text");
+                            element.classList.remove("red-text"); // Remove 'red-text' class if it exists
+                        } else {
+                            element.classList.add("red-text");
+                            element.classList.remove("green-text"); // Remove 'green-text' class if it exists
+                        }
+                    }
+
+                    handleColorAndValue(r_1, "r1");
+                    handleColorAndValue(r_2, "r2");
+                    handleColorAndValue(r_3, "r3");
+                    handleColorAndValue(r_4, "r4");
+
+                    previous_price_1 = price_1;
+                    previous_price_2 = price_2;
+                    previous_price_3 = price_3;
+                    previous_price_4 = price_4;
+                });
+            })
+
+            .catch(error => {
+                console.error('Error loading data: ' + error);
+            });
+    </script>
+</body>
+</html>
